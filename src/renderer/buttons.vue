@@ -1,5 +1,8 @@
 <template>
     <div>
+        <button v-on:click="compareImages">
+        비교
+        </button>
         <button v-on:click="exportImages">
         추출
         </button>
@@ -18,6 +21,10 @@ export default {
         }
     },
     methods: {
+        compareImages: function () {
+            console.log('compareImages');   
+            compareImages();
+        },
         exportImages: function () {
             console.log('exportImages');   
             exportImages();

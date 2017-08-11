@@ -5,6 +5,7 @@ import path from 'path';
 import Vue from 'vue';
 import Progress from './renderer/progress.vue';
 import Buttons from './renderer/buttons.vue';
+import dircompare from 'dir-compare';
 const app = new Vue(Progress).$mount('#progress');
 const app2 = new Vue(Buttons).$mount('#buttons');
 // app.text = "Electron Forge with Vue.js!";
@@ -12,6 +13,7 @@ const app2 = new Vue(Buttons).$mount('#buttons');
 const destImage = path.resolve(__dirname, 'renderer', 'images');
 const destThumb = path.resolve(__dirname, 'renderer', 'thumbs');
 const uploads = path.resolve(__dirname, 'renderer', 'uploads');
+const oldUploads = path.resolve(__dirname, 'renderer', 'oldUploads');
 
 function exportImages() {
     app.max_count = 0;
@@ -28,6 +30,37 @@ function exportImages() {
 
     getImage(target, 'image');
     getImage(target, 'thumb');
+}
+
+function compareImages() {
+    const options = {compareSize: false};
+    const result = dircompare.compareSync(oldUploads, uploads, options);
+    app.max_count = result.differencesFiles;
+    app.count = 0;
+    var format = require('util').format;
+    result.diffSet.forEach(function (entry) {
+        if((entry.type1 === 'file' || entry.type2 === 'file') && entry.state !== 'equal') {
+            app.count++;
+            var state = {
+                'equal' : '==',
+                'left' : '->',
+                'right' : '<-',
+                'distinct' : '<>'
+            }[entry.state];
+            var name1 = entry.name1 ? entry.name1 : '';
+            var name2 = entry.name2 ? entry.name2 : '';
+            let style = '';
+            if(entry.state === 'left') {
+                style = 'background: #FFEBE5; color: #BF2601';
+            } else if(entry.state === 'right') {
+                style = 'background: #E3FCF0; color: #006645';
+            } else {
+                style = 'background: yellow';
+            }
+
+            console.log(format('%c%s(%s)%s%s(%s)', name1, entry.type1, state, name2, entry.type2), style);
+        }
+    });
 }
 
 function getImage(target, type) {
